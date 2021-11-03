@@ -3,19 +3,20 @@ pipeline {
   stages {
     stage('build') {
       steps {
-        echo 'start build'
+        sh './gradlew clean build'
       }
     }
 
     stage('upload') {
       steps {
-        echo 'start upload'
+        sh 'aws s3 cp build/libs/application.war s3://jenkinsdeploy-application/application.war --region ap-northeast-2'
       }
     }
 
     stage('deploy') {
       steps {
-        echo 'start deploy'
+        sh 'aws elasticbeanstalk create-application-version --region us-east-1b --application-name demo --version-label ${BUILD_TAG} --source-bundle S3Bucket="jenkinsdeploy-application",S3Key="application.war"'
+        sh 'aws elasticbeanstalk update-environment --region us-east-1b --environment-name Demo-env --version-label ${BUILD_TAG}'
       }
     }
 
